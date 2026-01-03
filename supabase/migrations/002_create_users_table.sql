@@ -86,3 +86,4 @@ CREATE POLICY "Authenticated users can insert profiles"
   TO authenticated
   WITH CHECK (auth.uid() = id);
 
+

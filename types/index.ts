@@ -46,3 +46,5 @@ export interface Playlist {
   created_at: string
 }
 
+export type PageType = 'home' | 'profile' | 'login' | 'signup' | 'favorites' | 'library'
+

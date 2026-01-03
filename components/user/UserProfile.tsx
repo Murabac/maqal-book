@@ -25,9 +25,12 @@ export function UserProfile({ onPlayBook }: UserProfileProps) {
   }
 
   const currentBook = {
+    id: '1',
     title: 'The Midnight Library',
     author: 'Matt Haig',
     cover: 'https://images.unsplash.com/photo-1604435062356-a880b007922c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=400',
+    duration: '8h 30m',
+    category: 'Fiction',
     progress: 67,
     timeLeft: '2h 45m',
     language: 'English' as const,
@@ -198,7 +201,25 @@ export function UserProfile({ onPlayBook }: UserProfileProps) {
 
       <div className="container mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-6 sm:space-y-8">
         {/* Currently Reading */}
-        <CurrentlyReading book={currentBook} onPlay={() => onPlayBook(currentBook as Audiobook)} />
+        <CurrentlyReading 
+          book={{
+            title: currentBook.title,
+            author: currentBook.author,
+            cover: currentBook.cover,
+            progress: currentBook.progress,
+            timeLeft: currentBook.timeLeft,
+            language: currentBook.language,
+          }} 
+          onPlay={() => onPlayBook({
+            id: currentBook.id,
+            title: currentBook.title,
+            author: currentBook.author,
+            cover: currentBook.cover,
+            duration: currentBook.duration,
+            category: currentBook.category,
+            language: currentBook.language,
+          })} 
+        />
 
         {/* Stats Grid */}
         <div>

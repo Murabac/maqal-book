@@ -4,8 +4,7 @@ import { useState } from 'react'
 import { Search, Menu, X, Headphones, User, Heart, Library, LogOut } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 import { useRouter } from 'next/navigation'
-
-type PageType = 'home' | 'profile' | 'login' | 'signup' | 'favorites' | 'library'
+import { PageType } from '@/types'
 
 interface HeaderProps {
   currentPage: PageType

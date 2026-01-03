@@ -2,9 +2,10 @@
 
 import { useState } from 'react'
 import { Header } from './Header'
+import { PageType } from '@/types'
 
 export function HeaderWrapper() {
-  const [currentPage, setCurrentPage] = useState('home')
+  const [currentPage, setCurrentPage] = useState<PageType>('home')
   const [searchQuery, setSearchQuery] = useState('')
 
   return (
@@ -16,4 +17,5 @@ export function HeaderWrapper() {
     />
   )
 }
+
 

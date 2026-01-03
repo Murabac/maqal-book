@@ -44,3 +44,4 @@ Creates the listening progress tracking table:
 - Triggers automatically create user profiles on signup
 - UUIDs are auto-generated using `gen_random_uuid()`
 
+

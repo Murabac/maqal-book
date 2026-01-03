@@ -28,3 +28,4 @@ export function StatCard({ icon, label, value, gradient, trend }: StatCardProps)
   )
 }
 
+
