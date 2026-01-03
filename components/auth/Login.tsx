@@ -212,7 +212,7 @@ export function Login({ onLogin, onSwitchToSignup }: LoginProps) {
 
           {/* Sign Up Link */}
           <div className="text-center mt-4 sm:mt-6">
-            <span className="text-xs sm:text-sm text-gray-600">Don't have an account? </span>
+            <span className="text-xs sm:text-sm text-gray-600">Don&apos;t have an account? </span>
             <button
               type="button"
               onClick={onSwitchToSignup}
