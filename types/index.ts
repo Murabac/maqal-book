@@ -10,12 +10,12 @@ export interface Audiobook {
   id: string
   title: string
   author: string
-  description: string
-  cover_image_url: string
-  duration: number // total duration in seconds
+  cover: string
+  duration: string // e.g., "8h 30m"
   category: string
-  created_at: string
-  updated_at: string
+  language: 'English' | 'Arabic' | 'Somali'
+  created_at?: string
+  updated_at?: string
 }
 
 export interface Chapter {

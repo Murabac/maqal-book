@@ -6,9 +6,14 @@ export async function updateSession(request: NextRequest) {
     request,
   })
 
+  // Skip middleware if Supabase env vars are not set (for development)
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+    return supabaseResponse
+  }
+
   const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    process.env.NEXT_PUBLIC_SUPABASE_URL,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
     {
       cookies: {
         getAll() {
@@ -35,15 +40,18 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser()
 
-  if (
-    !user &&
-    !request.nextUrl.pathname.startsWith('/login') &&
-    !request.nextUrl.pathname.startsWith('/signup')
-  ) {
-    // no user, potentially respond by redirecting the user to the login page
-    const url = request.nextUrl.clone()
-    url.pathname = '/login'
-    return NextResponse.redirect(url)
+  // Only protect API routes that require authentication
+  // All page routes are handled client-side
+  const isProtectedApiRoute = 
+    request.nextUrl.pathname.startsWith('/api/') && 
+    !request.nextUrl.pathname.startsWith('/api/auth/callback')
+
+  if (!user && isProtectedApiRoute) {
+    // Return 401 for protected API routes
+    return new NextResponse(JSON.stringify({ error: 'Unauthorized' }), {
+      status: 401,
+      headers: { 'Content-Type': 'application/json' },
+    })
   }
 
   // IMPORTANT: You *must* return the supabaseResponse object as it is. If you're
