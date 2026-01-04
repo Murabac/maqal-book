@@ -1,8 +1,19 @@
 import type { Metadata } from "next";
+import { Inter, Cairo } from "next/font/google";
 import "./globals.css";
 import { AudioPlayerProvider } from "@/context/AudioPlayerContext";
-import { Header } from "@/components/layout/Header";
-import { AudioPlayer } from "@/components/audiobook/AudioPlayer";
+
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-inter",
+  display: "swap",
+});
+
+const cairo = Cairo({
+  subsets: ["arabic", "latin"],
+  variable: "--font-cairo",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   title: "Maqal - Audiobook App",
@@ -15,14 +26,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" className={`${inter.variable} ${cairo.variable}`}>
       <body>
         <AudioPlayerProvider>
-          <Header />
-          <main className="min-h-screen pb-24">
-            {children}
-          </main>
-          <AudioPlayer />
+          {children}
         </AudioPlayerProvider>
       </body>
     </html>
