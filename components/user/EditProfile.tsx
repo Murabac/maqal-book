@@ -148,11 +148,11 @@ export function EditProfile() {
       const updates: { full_name?: string; avatar_url?: string } = {}
       
       if (fullName !== profile?.full_name) {
-        updates.full_name = fullName || null
+        updates.full_name = fullName || undefined
       }
       
       if (avatarUrl !== profile?.avatar_url) {
-        updates.avatar_url = avatarUrl || null
+        updates.avatar_url = avatarUrl || undefined
       }
 
       const success = await updateProfile(updates)

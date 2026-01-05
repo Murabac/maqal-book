@@ -15,7 +15,7 @@ import { useAuth } from '@/hooks/useAuth'
 import { useAudiobooks } from '@/lib/audiobooks-client'
 import type { Audiobook } from '@/types'
 
-type PageType = 'home' | 'profile' | 'login' | 'signup' | 'favorites' | 'library'
+type PageType = 'home' | 'profile' | 'login' | 'signup' | 'favorites' | 'library' | 'edit-profile'
 
 export default function Home() {
   const [currentBook, setCurrentBook] = useState<Audiobook | null>(null)
@@ -115,7 +115,7 @@ export default function Home() {
       <>
         <Header
           currentPage={currentPage}
-          setCurrentPage={setCurrentPage}
+          setCurrentPage={(page) => setCurrentPage(page as PageType)}
           isAuthenticated={isAuthenticated}
         />
         <UserProfile onPlayBook={handlePlayBook} />
@@ -134,7 +134,7 @@ export default function Home() {
       <>
         <Header
           currentPage={currentPage}
-          setCurrentPage={setCurrentPage}
+          setCurrentPage={(page) => setCurrentPage(page as PageType)}
           isAuthenticated={isAuthenticated}
         />
         <Favorites
@@ -152,7 +152,7 @@ export default function Home() {
       <>
         <Header
           currentPage={currentPage}
-          setCurrentPage={setCurrentPage}
+          setCurrentPage={(page) => setCurrentPage(page as PageType)}
           isAuthenticated={isAuthenticated}
         />
         <BrowseLibrary
@@ -183,7 +183,7 @@ export default function Home() {
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-teal-50 pb-24 sm:pb-32">
       <Header
         currentPage={currentPage}
-        setCurrentPage={setCurrentPage}
+        setCurrentPage={(page) => setCurrentPage(page as PageType)}
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
         isAuthenticated={isAuthenticated}
