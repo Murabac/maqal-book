@@ -3,19 +3,25 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Header } from '@/components/layout/Header'
-import { BrowseLibrary } from '@/components/library/BrowseLibrary'
+import { Favorites } from '@/components/favorites/Favorites'
 import { AudioPlayerNew } from '@/components/audiobook/AudioPlayerNew'
 import { useAuth } from '@/hooks/useAuth'
 import { useAudiobooks } from '@/lib/audiobooks-client'
 import type { Audiobook } from '@/types'
 
-export default function LibraryPage() {
+export default function FavoritesPage() {
   const { user, loading: authLoading } = useAuth()
   const { audiobooks, loading: audiobooksLoading } = useAudiobooks()
   const router = useRouter()
-  const [currentPage, setCurrentPage] = useState<'library'>('library')
+  const [currentPage, setCurrentPage] = useState<'favorites'>('favorites')
   const [currentBook, setCurrentBook] = useState<Audiobook | null>(null)
   const [favorites, setFavorites] = useState<string[]>([])
+
+  useEffect(() => {
+    if (!authLoading && !user) {
+      router.push('/login')
+    }
+  }, [user, authLoading, router])
 
   const handlePlayBook = (book: Audiobook) => {
     if (!user) {
@@ -51,7 +57,7 @@ export default function LibraryPage() {
     }
   }
 
-  if (audiobooksLoading || authLoading) {
+  if (authLoading || audiobooksLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-teal-50 flex items-center justify-center">
         <div className="text-center">
@@ -62,6 +68,12 @@ export default function LibraryPage() {
     )
   }
 
+  if (!user) {
+    return null
+  }
+
+  const favoriteBooks = audiobooks.filter((book) => favorites.includes(book.id))
+
   return (
     <>
       <Header
@@ -69,13 +81,13 @@ export default function LibraryPage() {
         setCurrentPage={handlePageChange as any}
         isAuthenticated={!!user}
       />
-      <BrowseLibrary
-        audiobooks={audiobooks}
+      <Favorites
+        favorites={favoriteBooks}
         onPlayBook={handlePlayBook}
-        onToggleFavorite={toggleFavorite}
-        favorites={favorites}
+        onRemoveFavorite={toggleFavorite}
       />
       {user && <AudioPlayerNew currentBook={currentBook} />}
     </>
   )
 }
+

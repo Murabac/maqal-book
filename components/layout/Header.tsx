@@ -72,7 +72,10 @@ export function Header({
           {/* Navigation - Desktop */}
           <div className="hidden md:flex items-center gap-2">
             <button
-              onClick={() => setCurrentPage('library')}
+              onClick={() => {
+                setCurrentPage('library')
+                router.push('/library')
+              }}
               className={`flex items-center gap-2 px-4 py-2 rounded-full transition-all ${
                 currentPage === 'library'
                   ? 'bg-gradient-to-r from-purple-600 via-blue-600 to-teal-500 text-white'
@@ -85,7 +88,10 @@ export function Header({
             {isAuthenticated ? (
               <>
                 <button
-                  onClick={() => setCurrentPage('favorites')}
+                  onClick={() => {
+                    setCurrentPage('favorites')
+                    router.push('/favorites')
+                  }}
                   className={`flex items-center gap-2 px-4 py-2 rounded-full transition-all ${
                     currentPage === 'favorites'
                       ? 'bg-gradient-to-r from-purple-600 via-blue-600 to-teal-500 text-white'
@@ -97,7 +103,10 @@ export function Header({
                 </button>
                 <div className="relative">
                   <button
-                    onClick={() => setShowUserMenu(!showUserMenu)}
+                    onClick={() => {
+                      router.push('/profile')
+                      setCurrentPage('profile')
+                    }}
                     className={`flex items-center gap-2 px-4 py-2 rounded-full transition-all ${
                       currentPage === 'profile'
                         ? 'bg-gradient-to-r from-purple-600 via-blue-600 to-teal-500 text-white'
@@ -120,6 +129,7 @@ export function Header({
                           onClick={() => {
                             setCurrentPage('profile')
                             setShowUserMenu(false)
+                            router.push('/profile')
                           }}
                           className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
                         >
@@ -194,6 +204,7 @@ export function Header({
                 onClick={() => {
                   setCurrentPage('library')
                   setMobileMenuOpen(false)
+                  router.push('/library')
                 }}
                 className={`flex items-center gap-2 px-4 py-3 rounded-xl transition-all text-left ${
                   currentPage === 'library'
@@ -210,6 +221,7 @@ export function Header({
                     onClick={() => {
                       setCurrentPage('favorites')
                       setMobileMenuOpen(false)
+                      router.push('/favorites')
                     }}
                     className={`flex items-center gap-2 px-4 py-3 rounded-xl transition-all text-left ${
                       currentPage === 'favorites'
@@ -224,6 +236,7 @@ export function Header({
                     onClick={() => {
                       setCurrentPage('profile')
                       setMobileMenuOpen(false)
+                      router.push('/profile')
                     }}
                     className={`flex items-center gap-2 px-4 py-3 rounded-xl transition-all text-left ${
                       currentPage === 'profile'

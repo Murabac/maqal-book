@@ -12,6 +12,7 @@ import { UserProfile } from '@/components/user/UserProfile'
 import { Favorites } from '@/components/favorites/Favorites'
 import { BrowseLibrary } from '@/components/library/BrowseLibrary'
 import { useAuth } from '@/hooks/useAuth'
+import { useAudiobooks } from '@/lib/audiobooks-client'
 import type { Audiobook } from '@/types'
 
 type PageType = 'home' | 'profile' | 'login' | 'signup' | 'favorites' | 'library'
@@ -22,6 +23,7 @@ export default function Home() {
   const [currentPage, setCurrentPage] = useState<PageType>('home')
   const [favorites, setFavorites] = useState<string[]>([])
   const { user, loading: authLoading } = useAuth()
+  const { audiobooks, loading: audiobooksLoading } = useAudiobooks()
   const isAuthenticated = !!user
 
   // Update authentication state when user changes
@@ -35,178 +37,28 @@ export default function Home() {
     }
   }, [user, currentPage, isAuthenticated])
 
-  const audiobooks: Audiobook[] = [
-    {
-      id: '1',
-      title: 'The Midnight Library',
-      author: 'Matt Haig',
-      cover: 'https://images.unsplash.com/photo-1604435062356-a880b007922c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=400',
-      duration: '8h 30m',
-      category: 'Mystery',
-      language: 'English',
-    },
-    {
-      id: '2',
-      title: 'The Starless Sea',
-      author: 'Erin Morgenstern',
-      cover: 'https://images.unsplash.com/photo-1730451309552-44e5690629dd?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=400',
-      duration: '12h 15m',
-      category: 'Fantasy',
-      language: 'English',
-    },
-    {
-      id: '3',
-      title: 'Beach Read',
-      author: 'Emily Henry',
-      cover: 'https://images.unsplash.com/photo-1711185896459-063a3ccdeced?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=400',
-      duration: '6h 45m',
-      category: 'Romance',
-      language: 'English',
-    },
-    {
-      id: '4',
-      title: 'Project Hail Mary',
-      author: 'Andy Weir',
-      cover: 'https://images.unsplash.com/photo-1759234008322-70456fcf6aec?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=400',
-      duration: '10h 20m',
-      category: 'Sci-Fi',
-      language: 'English',
-    },
-    {
-      id: '5',
-      title: 'The Silent Patient',
-      author: 'Alex Michaelides',
-      cover: 'https://images.unsplash.com/photo-1760696473709-a7da66ee87a6?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=400',
-      duration: '7h 10m',
-      category: 'Thriller',
-      language: 'English',
-    },
-    {
-      id: '6',
-      title: 'Where the Crawdads Sing',
-      author: 'Delia Owens',
-      cover: 'https://images.unsplash.com/photo-1758796629109-4f38e9374f45?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=400',
-      duration: '11h 5m',
-      category: 'Fiction',
-      language: 'English',
-    },
-    {
-      id: '7',
-      title: 'ألف ليلة وليلة',
-      author: 'مجهول',
-      cover: 'https://images.unsplash.com/photo-1516979187457-637abb4f9353?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=400',
-      duration: '15h 20m',
-      category: 'Fantasy',
-      language: 'Arabic',
-    },
-    {
-      id: '8',
-      title: 'الأيام',
-      author: 'طه حسين',
-      cover: 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=400',
-      duration: '5h 45m',
-      category: 'Non-Fiction',
-      language: 'Arabic',
-    },
-    {
-      id: '9',
-      title: 'رجال في الشمس',
-      author: 'غسان كنفاني',
-      cover: 'https://images.unsplash.com/photo-1506880018603-83d5b814b5a6?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=400',
-      duration: '3h 30m',
-      category: 'Fiction',
-      language: 'Arabic',
-    },
-    {
-      id: '10',
-      title: 'عزازيل',
-      author: 'يوسف زيدان',
-      cover: 'https://images.unsplash.com/photo-1512820790803-83ca734da794?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=400',
-      duration: '9h 15m',
-      category: 'Mystery',
-      language: 'Arabic',
-    },
-    {
-      id: '11',
-      title: 'موسم الهجرة إلى الشمال',
-      author: 'الطيب صالح',
-      cover: 'https://images.unsplash.com/photo-1495446815901-a7297e633e8d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=400',
-      duration: '6h 20m',
-      category: 'Fiction',
-      language: 'Arabic',
-    },
-    {
-      id: '12',
-      title: 'قواعد العشق الأربعون',
-      author: 'إليف شافاق',
-      cover: 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=400',
-      duration: '11h 40m',
-      category: 'Romance',
-      language: 'Arabic',
-    },
-    {
-      id: '13',
-      title: 'Aqoondarro waa Iftiin la\'aan',
-      author: 'Maxamed Daahir Afrax',
-      cover: 'https://images.unsplash.com/photo-1519682577862-22b62b24e493?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=400',
-      duration: '7h 50m',
-      category: 'Non-Fiction',
-      language: 'Somali',
-    },
-    {
-      id: '14',
-      title: 'Hal aan tebayey',
-      author: 'Maxamed Ibrahim Warsame',
-      cover: 'https://images.unsplash.com/photo-1497633762265-9d179a990aa6?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=400',
-      duration: '4h 30m',
-      category: 'Fiction',
-      language: 'Somali',
-    },
-    {
-      id: '15',
-      title: 'Gardarro iyo Geesinnimo',
-      author: 'Faarax M.J. Cawl',
-      cover: 'https://images.unsplash.com/photo-1532012197267-da84d127e765?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=400',
-      duration: '6h 10m',
-      category: 'Thriller',
-      language: 'Somali',
-    },
-    {
-      id: '16',
-      title: 'Sheekooyin Soomaaliyeed',
-      author: 'Muuse Cumar',
-      cover: 'https://images.unsplash.com/photo-1550399105-c4db5fb85c18?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=400',
-      duration: '8h 25m',
-      category: 'Fantasy',
-      language: 'Somali',
-    },
-    {
-      id: '17',
-      title: 'Taariikh Soomaaliya',
-      author: 'Cali Sugulle',
-      cover: 'https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=400',
-      duration: '10h 5m',
-      category: 'Non-Fiction',
-      language: 'Somali',
-    },
-    {
-      id: '18',
-      title: 'Jacayl iyo Cadar',
-      author: 'Maryan Mursal',
-      cover: 'https://images.unsplash.com/photo-1543002588-bfa74002ed7e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=400',
-      duration: '5h 35m',
-      category: 'Romance',
-      language: 'Somali',
-    },
-  ]
+  // Filter audiobooks based on search query
+  const filteredAudiobooks = audiobooks.filter((book) => {
+    if (!searchQuery) return true
+    return (
+      book.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      book.author.toLowerCase().includes(searchQuery.toLowerCase())
+    )
+  })
+
+  // Get unique categories and calculate counts dynamically
+  const categoryMap = new Map<string, number>()
+  audiobooks.forEach((book) => {
+    categoryMap.set(book.category, (categoryMap.get(book.category) || 0) + 1)
+  })
 
   const categories = [
-    { name: 'Mystery', count: 124, gradient: 'bg-gradient-to-br from-purple-500 to-indigo-600', icon: '🔍' },
-    { name: 'Fantasy', count: 98, gradient: 'bg-gradient-to-br from-blue-500 to-cyan-600', icon: '🧙' },
-    { name: 'Romance', count: 156, gradient: 'bg-gradient-to-br from-teal-500 to-cyan-600', icon: '💕' },
-    { name: 'Sci-Fi', count: 87, gradient: 'bg-gradient-to-br from-blue-500 to-indigo-600', icon: '🚀' },
-    { name: 'Thriller', count: 112, gradient: 'bg-gradient-to-br from-indigo-500 to-purple-600', icon: '⚡' },
-    { name: 'Non-Fiction', count: 203, gradient: 'bg-gradient-to-br from-teal-500 to-blue-600', icon: '📚' },
+    { name: 'Mystery', count: categoryMap.get('Mystery') || 0, gradient: 'bg-gradient-to-br from-purple-500 to-indigo-600', icon: '🔍' },
+    { name: 'Fantasy', count: categoryMap.get('Fantasy') || 0, gradient: 'bg-gradient-to-br from-blue-500 to-cyan-600', icon: '🧙' },
+    { name: 'Romance', count: categoryMap.get('Romance') || 0, gradient: 'bg-gradient-to-br from-teal-500 to-cyan-600', icon: '💕' },
+    { name: 'Sci-Fi', count: categoryMap.get('Sci-Fi') || 0, gradient: 'bg-gradient-to-br from-blue-500 to-indigo-600', icon: '🚀' },
+    { name: 'Thriller', count: categoryMap.get('Thriller') || 0, gradient: 'bg-gradient-to-br from-indigo-500 to-purple-600', icon: '⚡' },
+    { name: 'Non-Fiction', count: categoryMap.get('Non-Fiction') || 0, gradient: 'bg-gradient-to-br from-teal-500 to-blue-600', icon: '📚' },
   ]
 
   const handlePlayBook = (book: Audiobook) => {
@@ -314,6 +166,18 @@ export default function Home() {
     )
   }
 
+  // Show loading state
+  if (audiobooksLoading || authLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-teal-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading...</p>
+        </div>
+      </div>
+    )
+  }
+
   // Home page
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-teal-50 pb-24 sm:pb-32">
@@ -379,7 +243,7 @@ export default function Home() {
           </button>
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 sm:gap-6">
-          {audiobooks.map((book) => (
+          {filteredAudiobooks.slice(0, 12).map((book) => (
             <BookCard
               key={book.id}
               {...book}
@@ -403,7 +267,7 @@ export default function Home() {
           </button>
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 sm:gap-6">
-          {[...audiobooks].reverse().map((book) => (
+          {[...filteredAudiobooks].reverse().slice(0, 12).map((book) => (
             <BookCard
               key={`popular-${book.id}`}
               {...book}

@@ -1,7 +1,7 @@
--- Create users table in maqal-book schema
+-- Create users table in public schema
 -- This table extends the auth.users table with additional profile information
 
-CREATE TABLE IF NOT EXISTS "maqal-book".users (
+CREATE TABLE IF NOT EXISTS public.users (
   id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
   email TEXT UNIQUE NOT NULL,
   full_name TEXT,
@@ -16,13 +16,13 @@ CREATE TABLE IF NOT EXISTS "maqal-book".users (
 );
 
 -- Create index on email for faster lookups
-CREATE INDEX IF NOT EXISTS idx_users_email ON "maqal-book".users(email);
+CREATE INDEX IF NOT EXISTS idx_users_email ON public.users(email);
 
 -- Create index on created_at for sorting
-CREATE INDEX IF NOT EXISTS idx_users_created_at ON "maqal-book".users(created_at);
+CREATE INDEX IF NOT EXISTS idx_users_created_at ON public.users(created_at);
 
 -- Function to update updated_at timestamp
-CREATE OR REPLACE FUNCTION "maqal-book".update_updated_at_column()
+CREATE OR REPLACE FUNCTION public.update_updated_at_column()
 RETURNS TRIGGER AS $$
 BEGIN
   NEW.updated_at = NOW();
@@ -30,60 +30,74 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+-- Drop trigger if it exists before creating
+DROP TRIGGER IF EXISTS update_users_updated_at ON public.users;
+
 -- Trigger to automatically update updated_at
 CREATE TRIGGER update_users_updated_at
-  BEFORE UPDATE ON "maqal-book".users
+  BEFORE UPDATE ON public.users
   FOR EACH ROW
-  EXECUTE FUNCTION "maqal-book".update_updated_at_column();
+  EXECUTE FUNCTION public.update_updated_at_column();
 
 -- Function to automatically create user profile when a user signs up
-CREATE OR REPLACE FUNCTION "maqal-book".handle_new_user()
+CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$
 BEGIN
-  INSERT INTO "maqal-book".users (id, email, full_name)
+  INSERT INTO public.users (id, email, full_name)
   VALUES (
     NEW.id,
     NEW.email,
     COALESCE(NEW.raw_user_meta_data->>'full_name', NEW.raw_user_meta_data->>'name', '')
-  );
+  )
+  ON CONFLICT (id) DO NOTHING;
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Drop trigger if it exists before creating
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 
 -- Trigger to create user profile on signup
 CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW
-  EXECUTE FUNCTION "maqal-book".handle_new_user();
+  EXECUTE FUNCTION public.handle_new_user();
 
 -- Enable Row Level Security
-ALTER TABLE "maqal-book".users ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.users ENABLE ROW LEVEL SECURITY;
+
+-- Drop existing policies if they exist (to avoid conflicts)
+DROP POLICY IF EXISTS "Users can view own profile" ON public.users;
+DROP POLICY IF EXISTS "Users can update own profile" ON public.users;
+DROP POLICY IF EXISTS "Authenticated users can view public profiles" ON public.users;
+DROP POLICY IF EXISTS "Authenticated users can insert profiles" ON public.users;
 
 -- Policy: Users can read their own profile
 CREATE POLICY "Users can view own profile"
-  ON "maqal-book".users
+  ON public.users
   FOR SELECT
   USING (auth.uid() = id);
 
 -- Policy: Users can update their own profile
 CREATE POLICY "Users can update own profile"
-  ON "maqal-book".users
+  ON public.users
   FOR UPDATE
   USING (auth.uid() = id);
 
 -- Policy: Public profiles can be viewed by authenticated users
 -- (for features like leaderboards, etc.)
 CREATE POLICY "Authenticated users can view public profiles"
-  ON "maqal-book".users
+  ON public.users
   FOR SELECT
   TO authenticated
   USING (true);
 
 -- Policy: Only authenticated users can insert (via trigger)
 CREATE POLICY "Authenticated users can insert profiles"
-  ON "maqal-book".users
+  ON public.users
   FOR INSERT
   TO authenticated
   WITH CHECK (auth.uid() = id);
+
 
 

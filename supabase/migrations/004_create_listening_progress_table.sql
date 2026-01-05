@@ -53,3 +53,4 @@ CREATE POLICY "Users can delete own progress"
   USING (auth.uid() = user_id);
 
 
+

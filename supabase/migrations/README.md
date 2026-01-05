@@ -45,3 +45,4 @@ Creates the listening progress tracking table:
 - UUIDs are auto-generated using `gen_random_uuid()`
 
 
+
