@@ -1,12 +1,13 @@
 'use client'
 
 import Image from 'next/image'
-import { TrendingUp, Award, Clock, BookOpen, Target, Settings, ChevronRight, LogOut } from 'lucide-react'
+import { TrendingUp, Award, Clock, BookOpen, Target, Edit, ChevronRight, LogOut } from 'lucide-react'
 import { ProgressRing } from '@/components/ui/ProgressRing'
 import { StatCard } from '@/components/ui/StatCard'
 import { Badge } from '@/components/ui/Badge'
 import { CurrentlyReading } from '@/components/audiobook/CurrentlyReading'
 import { useAuth } from '@/hooks/useAuth'
+import { useUserProfile } from '@/hooks/useUserProfile'
 import { useRouter } from 'next/navigation'
 import type { Audiobook } from '@/types'
 
@@ -16,12 +17,17 @@ interface UserProfileProps {
 
 export function UserProfile({ onPlayBook }: UserProfileProps) {
   const { signOut } = useAuth()
+  const { profile, loading: profileLoading } = useUserProfile()
   const router = useRouter()
 
   const handleLogout = async () => {
     await signOut()
     router.push('/')
     router.refresh()
+  }
+
+  const handleEditProfile = () => {
+    router.push('/profile/edit')
   }
 
   const currentBook = {
@@ -36,34 +42,41 @@ export function UserProfile({ onPlayBook }: UserProfileProps) {
     language: 'English' as const,
   }
 
+  // Format listening time from minutes to hours
+  const formatListeningTime = (minutes?: number) => {
+    if (!minutes) return '0h'
+    const hours = Math.floor(minutes / 60)
+    return `${hours}h`
+  }
+
   const stats = [
     {
       icon: <Clock className="w-6 h-6 text-purple-600" />,
       label: 'Listening Time',
-      value: '127h',
+      value: formatListeningTime(profile?.listening_time_minutes),
       gradient: 'bg-gradient-to-br from-purple-500 to-purple-600',
       trend: '+12h this week',
     },
     {
       icon: <BookOpen className="w-6 h-6 text-pink-600" />,
       label: 'Books Completed',
-      value: '23',
+      value: String(profile?.books_completed || 0),
       gradient: 'bg-gradient-to-br from-pink-500 to-pink-600',
       trend: '2 this month',
     },
     {
       icon: <Target className="w-6 h-6 text-orange-600" />,
       label: 'Current Streak',
-      value: '14🔥',
+      value: `${profile?.current_streak || 0}${profile?.current_streak ? '🔥' : ''}`,
       gradient: 'bg-gradient-to-br from-orange-500 to-orange-600',
       trend: 'Personal best!',
     },
     {
       icon: <TrendingUp className="w-6 h-6 text-blue-600" />,
       label: 'Level',
-      value: 'Explorer',
+      value: profile?.level || 'Explorer',
       gradient: 'bg-gradient-to-br from-blue-500 to-blue-600',
-      trend: '340/500 XP to Scholar',
+      trend: `${profile?.xp || 0}/500 XP to Scholar`,
     },
   ]
 
@@ -145,33 +158,69 @@ export function UserProfile({ onPlayBook }: UserProfileProps) {
             <div className="flex items-center gap-3 sm:gap-4 w-full sm:w-auto">
               <div className="relative flex-shrink-0">
                 <div className="w-16 h-16 sm:w-24 sm:h-24 rounded-full bg-gradient-to-br from-purple-600 via-blue-600 to-teal-500 p-1">
-                  <div className="w-full h-full rounded-full bg-white flex items-center justify-center">
-                    <span className="text-2xl sm:text-3xl">👤</span>
-                  </div>
+                  {profile?.avatar_url ? (
+                    <div className="w-full h-full rounded-full overflow-hidden bg-white">
+                      <img
+                        src={profile.avatar_url}
+                        alt={profile?.full_name || 'Profile'}
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          // Fallback to emoji if image fails to load
+                          const target = e.target as HTMLImageElement
+                          target.style.display = 'none'
+                          const parent = target.parentElement
+                          if (parent) {
+                            parent.innerHTML = '<span class="text-2xl sm:text-3xl">👤</span>'
+                          }
+                        }}
+                      />
+                    </div>
+                  ) : (
+                    <div className="w-full h-full rounded-full bg-white flex items-center justify-center">
+                      <span className="text-2xl sm:text-3xl">👤</span>
+                    </div>
+                  )}
                 </div>
                 <div className="absolute -bottom-1 -right-1 bg-gradient-to-br from-purple-600 via-blue-600 to-teal-500 text-white px-2 sm:px-3 py-0.5 sm:py-1 rounded-full text-xs font-semibold shadow-lg">
-                  Explorer
+                  {profile?.level || 'Explorer'}
                 </div>
               </div>
               <div className="flex-1 min-w-0">
-                <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 truncate">Sarah Anderson</h1>
-                <p className="text-sm sm:text-base text-gray-600">Member since Dec 2024</p>
+                <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 truncate">
+                  {profileLoading ? (
+                    <span className="animate-pulse bg-gray-200 rounded h-8 w-48 block"></span>
+                  ) : (
+                    profile?.full_name || profile?.email?.split('@')[0] || 'User'
+                  )}
+                </h1>
+                <p className="text-sm sm:text-base text-gray-600">
+                  {profileLoading ? (
+                    <span className="animate-pulse bg-gray-200 rounded h-4 w-32 block mt-1"></span>
+                  ) : profile?.created_at ? (
+                    `Member since ${new Date(profile.created_at).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}`
+                  ) : (
+                    'Member'
+                  )}
+                </p>
                 <div className="flex flex-wrap items-center gap-2 mt-2">
                   <div className="flex items-center gap-1 text-xs sm:text-sm text-gray-600">
                     <span className="text-orange-500">🔥</span>
-                    <span className="font-semibold">14 day streak</span>
+                    <span className="font-semibold">{profile?.current_streak || 0} day streak</span>
                   </div>
                   <span className="text-gray-400 hidden sm:inline">•</span>
                   <div className="text-xs sm:text-sm text-gray-600">
-                    <span className="font-semibold">340/500</span> XP to Scholar
+                    <span className="font-semibold">{profile?.xp || 0}/500</span> XP to Scholar
                   </div>
                 </div>
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <button className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors text-sm sm:text-base">
-                <Settings className="w-4 h-4 sm:w-5 sm:h-5" />
-                <span className="hidden sm:inline">Settings</span>
+              <button
+                onClick={handleEditProfile}
+                className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors text-sm sm:text-base"
+              >
+                <Edit className="w-4 h-4 sm:w-5 sm:h-5" />
+                <span className="hidden sm:inline">Edit Profile</span>
               </button>
               <button
                 onClick={handleLogout}
@@ -188,12 +237,14 @@ export function UserProfile({ onPlayBook }: UserProfileProps) {
           <div className="bg-gray-100 rounded-full h-3 overflow-hidden">
             <div
               className="h-full bg-gradient-to-r from-purple-600 via-blue-600 to-teal-500 transition-all duration-500 rounded-full"
-              style={{ width: '68%' }}
+              style={{ width: `${Math.min(((profile?.xp || 0) / 500) * 100, 100)}%` }}
             />
           </div>
           <div className="flex justify-between items-center mt-2 text-sm text-gray-600">
             <span>Listener</span>
-            <span className="font-semibold text-purple-600">Explorer (340 XP)</span>
+            <span className="font-semibold text-purple-600">
+              {profile?.level || 'Explorer'} ({profile?.xp || 0} XP)
+            </span>
             <span>Scholar</span>
           </div>
         </div>

@@ -1,11 +1,5 @@
--- Create the maqal-book schema if it doesn't exist
-CREATE SCHEMA IF NOT EXISTS "maqal-book";
-
--- Set the search path to include the new schema
-SET search_path TO "maqal-book", public;
-
--- Create audiobooks table
-CREATE TABLE IF NOT EXISTS "maqal-book".audiobooks (
+-- Create audiobooks table in public schema
+CREATE TABLE IF NOT EXISTS public.audiobooks (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   title TEXT NOT NULL,
   author TEXT NOT NULL,
@@ -18,12 +12,12 @@ CREATE TABLE IF NOT EXISTS "maqal-book".audiobooks (
 );
 
 -- Create indexes for better query performance
-CREATE INDEX IF NOT EXISTS idx_audiobooks_category ON "maqal-book".audiobooks(category);
-CREATE INDEX IF NOT EXISTS idx_audiobooks_language ON "maqal-book".audiobooks(language);
-CREATE INDEX IF NOT EXISTS idx_audiobooks_created_at ON "maqal-book".audiobooks(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_audiobooks_category ON public.audiobooks(category);
+CREATE INDEX IF NOT EXISTS idx_audiobooks_language ON public.audiobooks(language);
+CREATE INDEX IF NOT EXISTS idx_audiobooks_created_at ON public.audiobooks(created_at DESC);
 
 -- Create updated_at trigger function
-CREATE OR REPLACE FUNCTION "maqal-book".update_updated_at_column()
+CREATE OR REPLACE FUNCTION public.update_updated_at_column()
 RETURNS TRIGGER AS $$
 BEGIN
   NEW.updated_at = NOW();
@@ -33,22 +27,22 @@ $$ LANGUAGE plpgsql;
 
 -- Add trigger for updated_at
 CREATE TRIGGER update_audiobooks_updated_at
-  BEFORE UPDATE ON "maqal-book".audiobooks
+  BEFORE UPDATE ON public.audiobooks
   FOR EACH ROW
-  EXECUTE FUNCTION "maqal-book".update_updated_at_column();
+  EXECUTE FUNCTION public.update_updated_at_column();
 
 -- Enable Row Level Security (RLS)
-ALTER TABLE "maqal-book".audiobooks ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.audiobooks ENABLE ROW LEVEL SECURITY;
 
 -- RLS Policy: Anyone can view audiobooks (public read access)
 CREATE POLICY "Anyone can view audiobooks"
-  ON "maqal-book".audiobooks
+  ON public.audiobooks
   FOR SELECT
   USING (true);
 
--- Insert sample audiobooks data
-INSERT INTO "maqal-book".audiobooks (title, author, cover, duration, category, language)
-VALUES
+-- Insert sample audiobooks data (only if table is empty)
+INSERT INTO public.audiobooks (title, author, cover, duration, category, language)
+SELECT * FROM (VALUES
   -- English Books
   (
     'The Midnight Library',
@@ -195,5 +189,6 @@ VALUES
     '5h 35m',
     'Romance',
     'Somali'
-  );
+  )) AS v(title, author, cover, duration, category, language)
+WHERE NOT EXISTS (SELECT 1 FROM public.audiobooks);
 
