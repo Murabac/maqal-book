@@ -1,18 +1,29 @@
+'use client'
+
+import { useRouter } from 'next/navigation'
+import { Login } from '@/components/auth/Login'
+import { Header } from '@/components/layout/Header'
+
 export default function LoginPage() {
+  const router = useRouter()
+
+  const handleLogin = () => {
+    router.push('/')
+    router.refresh()
+  }
+
+  const handleSwitchToSignup = () => {
+    router.push('/signup')
+  }
+
   return (
-    <div className="flex min-h-screen items-center justify-center p-4">
-      <div className="w-full max-w-md space-y-8">
-        <div>
-          <h1 className="text-3xl font-bold text-center">Welcome back</h1>
-          <p className="text-muted-foreground text-center mt-2">
-            Sign in to continue listening
-          </p>
-        </div>
-        {/* Login form will be implemented here */}
-      </div>
-    </div>
+    <>
+      <Header currentPage="login" isAuthenticated={false} />
+      <Login onLogin={handleLogin} onSwitchToSignup={handleSwitchToSignup} />
+    </>
   )
 }
+
 
 
 

@@ -220,3 +220,4 @@ Design a mobile-optimized version of **Maqal Book**, a modern audiobook web appl
 **Primary Orientation**: Portrait (with landscape support for audio player)
 **Target Users**: Audiobook enthusiasts, multi-language content consumers
 
+
