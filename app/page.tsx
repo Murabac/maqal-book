@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Book } from 'lucide-react'
 import { Header } from '@/components/layout/Header'
 import { BookCard } from '@/components/audiobook/BookCard'
@@ -21,7 +21,9 @@ export default function Home() {
   const [currentBook, setCurrentBook] = useState<Audiobook | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [currentPage, setCurrentPage] = useState<PageType>('home')
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
   const [favorites, setFavorites] = useState<string[]>([])
+  const audiobooksSectionRef = useRef<HTMLDivElement>(null)
   const { user, loading: authLoading } = useAuth()
   const { audiobooks, loading: audiobooksLoading } = useAudiobooks()
   const isAuthenticated = !!user
@@ -37,13 +39,22 @@ export default function Home() {
     }
   }, [user, currentPage, isAuthenticated])
 
-  // Filter audiobooks based on search query
+  // Filter audiobooks based on search query and category
   const filteredAudiobooks = audiobooks.filter((book) => {
-    if (!searchQuery) return true
-    return (
-      book.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      book.author.toLowerCase().includes(searchQuery.toLowerCase())
-    )
+    // Filter by category
+    if (selectedCategory && book.category !== selectedCategory) {
+      return false
+    }
+    
+    // Filter by search query
+    if (searchQuery) {
+      return (
+        book.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        book.author.toLowerCase().includes(searchQuery.toLowerCase())
+      )
+    }
+    
+    return true
   })
 
   // Get unique categories and calculate counts dynamically
@@ -223,18 +234,43 @@ export default function Home() {
 
       {/* Categories */}
       <section className="container mx-auto px-4 sm:px-6 mb-12 sm:mb-16">
-        <h2 className="text-2xl sm:text-3xl font-bold mb-4 sm:mb-6 text-gray-900">Browse by Category</h2>
+        <div className="flex items-center justify-between mb-4 sm:mb-6">
+          <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">Browse by Category</h2>
+          {selectedCategory && (
+            <button
+              onClick={() => setSelectedCategory(null)}
+              className="text-sm sm:text-base text-purple-600 hover:text-purple-700 font-semibold"
+            >
+              Clear Filter
+            </button>
+          )}
+        </div>
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 sm:gap-4">
           {categories.map((category) => (
-            <CategoryCard key={category.name} {...category} />
+            <CategoryCard 
+              key={category.name} 
+              {...category}
+              onClick={() => {
+                setSelectedCategory(category.name)
+                // Scroll to audiobooks section after a short delay to ensure state update
+                setTimeout(() => {
+                  audiobooksSectionRef.current?.scrollIntoView({ 
+                    behavior: 'smooth', 
+                    block: 'start' 
+                  })
+                }, 100)
+              }}
+            />
           ))}
         </div>
       </section>
 
       {/* Featured Audiobooks */}
-      <section className="container mx-auto px-4 sm:px-6">
+      <section ref={audiobooksSectionRef} className="container mx-auto px-4 sm:px-6">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 sm:mb-6 gap-2">
-          <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">Featured Audiobooks</h2>
+          <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">
+            {selectedCategory ? `${selectedCategory} Audiobooks` : 'Featured Audiobooks'}
+          </h2>
           <button
             onClick={() => setCurrentPage('library')}
             className="text-sm sm:text-base text-purple-600 hover:text-purple-700 font-semibold"
@@ -242,42 +278,59 @@ export default function Home() {
             View All →
           </button>
         </div>
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 sm:gap-6">
-          {filteredAudiobooks.slice(0, 12).map((book) => (
-            <BookCard
-              key={book.id}
-              {...book}
-              onPlay={() => handlePlayBook(book)}
-              isFavorite={favorites.includes(book.id)}
-              onToggleFavorite={() => toggleFavorite(book.id)}
-            />
-          ))}
-        </div>
+        {filteredAudiobooks.length === 0 ? (
+          <div className="text-center py-12">
+            <p className="text-gray-600 text-lg">No books found in this category.</p>
+            <button
+              onClick={() => {
+                setSelectedCategory(null)
+                setSearchQuery('')
+              }}
+              className="mt-4 text-purple-600 hover:text-purple-700 font-semibold"
+            >
+              Clear filters
+            </button>
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 sm:gap-6">
+            {filteredAudiobooks.slice(0, 12).map((book) => (
+              <BookCard
+                key={book.id}
+                {...book}
+                onPlay={() => handlePlayBook(book)}
+                isFavorite={favorites.includes(book.id)}
+                onToggleFavorite={() => toggleFavorite(book.id)}
+              />
+            ))}
+          </div>
+        )}
       </section>
 
-      {/* Popular This Week */}
-      <section className="container mx-auto px-4 sm:px-6 mt-12 sm:mt-16">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 sm:mb-6 gap-2">
-          <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">Popular This Week</h2>
-          <button
-            onClick={() => setCurrentPage('library')}
-            className="text-sm sm:text-base text-purple-600 hover:text-purple-700 font-semibold"
-          >
-            View All →
-          </button>
-        </div>
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 sm:gap-6">
-          {[...filteredAudiobooks].reverse().slice(0, 12).map((book) => (
-            <BookCard
-              key={`popular-${book.id}`}
-              {...book}
-              onPlay={() => handlePlayBook(book)}
-              isFavorite={favorites.includes(book.id)}
-              onToggleFavorite={() => toggleFavorite(book.id)}
-            />
-          ))}
-        </div>
-      </section>
+      {/* Popular This Week - Only show if no category is selected */}
+      {!selectedCategory && (
+        <section className="container mx-auto px-4 sm:px-6 mt-12 sm:mt-16">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 sm:mb-6 gap-2">
+            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">Popular This Week</h2>
+            <button
+              onClick={() => setCurrentPage('library')}
+              className="text-sm sm:text-base text-purple-600 hover:text-purple-700 font-semibold"
+            >
+              View All →
+            </button>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 sm:gap-6">
+            {[...audiobooks].reverse().slice(0, 12).map((book) => (
+              <BookCard
+                key={`popular-${book.id}`}
+                {...book}
+                onPlay={() => handlePlayBook(book)}
+                isFavorite={favorites.includes(book.id)}
+                onToggleFavorite={() => toggleFavorite(book.id)}
+              />
+            ))}
+          </div>
+        </section>
+      )}
 
       {isAuthenticated && <AudioPlayerNew currentBook={currentBook} />}
     </div>

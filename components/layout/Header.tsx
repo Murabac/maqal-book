@@ -3,12 +3,12 @@
 import { useState } from 'react'
 import { Search, Menu, X, Headphones, User, Heart, Library, LogOut } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
-import { useRouter } from 'next/navigation'
+import { useRouter, usePathname } from 'next/navigation'
 import { PageType } from '@/types'
 
 interface HeaderProps {
-  currentPage: PageType
-  setCurrentPage: (page: PageType) => void
+  currentPage?: PageType
+  setCurrentPage?: (page: PageType) => void
   searchQuery?: string
   setSearchQuery?: (query: string) => void
   isAuthenticated?: boolean
@@ -25,23 +25,43 @@ export function Header({
   const [showUserMenu, setShowUserMenu] = useState(false)
   const { signOut } = useAuth()
   const router = useRouter()
+  const pathname = usePathname()
+
+  // Determine current page from pathname if not provided
+  const getCurrentPage = (): PageType => {
+    if (currentPage) return currentPage
+    if (pathname === '/') return 'home'
+    if (pathname === '/library' || pathname === '/browse') return 'library'
+    if (pathname === '/favorites') return 'favorites'
+    if (pathname === '/profile' || pathname.startsWith('/profile')) return 'profile'
+    if (pathname === '/login') return 'login'
+    if (pathname === '/signup') return 'signup'
+    return 'home'
+  }
+
+  const activePage = getCurrentPage()
+  const isHomePage = activePage === 'home'
+
+  const handleNavigation = (path: string) => {
+    setMobileMenuOpen(false)
+    router.push(path)
+  }
 
   const handleLogout = async () => {
     await signOut()
-    setCurrentPage('home')
+    router.push('/')
     router.refresh()
   }
-
+  
   return (
-    <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-lg border-b border-gray-200">
+    <header className={`sticky top-0 z-40 border-b border-gray-200 ${
+      isHomePage ? 'bg-white/80 backdrop-blur-lg' : 'bg-white'
+    }`}>
       <div className="container mx-auto px-4 py-3 sm:py-4">
         <div className="flex items-center justify-between gap-2">
           {/* Logo */}
           <button
-            onClick={() => {
-              setCurrentPage('home')
-              setMobileMenuOpen(false)
-            }}
+            onClick={() => handleNavigation('/')}
             className="flex items-center gap-1.5 sm:gap-2 hover:opacity-80 transition-opacity flex-shrink-0"
           >
             <div className="bg-gradient-to-br from-purple-600 via-blue-600 to-teal-500 p-1.5 sm:p-2 rounded-xl">
@@ -72,12 +92,9 @@ export function Header({
           {/* Navigation - Desktop */}
           <div className="hidden md:flex items-center gap-2">
             <button
-              onClick={() => {
-                setCurrentPage('library')
-                router.push('/library')
-              }}
+              onClick={() => handleNavigation('/library')}
               className={`flex items-center gap-2 px-4 py-2 rounded-full transition-all ${
-                currentPage === 'library'
+                activePage === 'library'
                   ? 'bg-gradient-to-r from-purple-600 via-blue-600 to-teal-500 text-white'
                   : 'text-gray-600 hover:text-gray-900'
               }`}
@@ -88,12 +105,9 @@ export function Header({
             {isAuthenticated ? (
               <>
                 <button
-                  onClick={() => {
-                    setCurrentPage('favorites')
-                    router.push('/favorites')
-                  }}
+                  onClick={() => handleNavigation('/favorites')}
                   className={`flex items-center gap-2 px-4 py-2 rounded-full transition-all ${
-                    currentPage === 'favorites'
+                    activePage === 'favorites'
                       ? 'bg-gradient-to-r from-purple-600 via-blue-600 to-teal-500 text-white'
                       : 'text-gray-600 hover:text-gray-900'
                   }`}
@@ -103,12 +117,9 @@ export function Header({
                 </button>
                 <div className="relative">
                   <button
-                    onClick={() => {
-                      router.push('/profile')
-                      setCurrentPage('profile')
-                    }}
+                    onClick={() => handleNavigation('/profile')}
                     className={`flex items-center gap-2 px-4 py-2 rounded-full transition-all ${
-                      currentPage === 'profile'
+                      activePage === 'profile'
                         ? 'bg-gradient-to-r from-purple-600 via-blue-600 to-teal-500 text-white'
                         : 'text-gray-600 hover:text-gray-900'
                     }`}
@@ -127,9 +138,8 @@ export function Header({
                       <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-200 py-2 z-20">
                         <button
                           onClick={() => {
-                            setCurrentPage('profile')
                             setShowUserMenu(false)
-                            router.push('/profile')
+                            handleNavigation('/profile')
                           }}
                           className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
                         >
@@ -151,13 +161,13 @@ export function Header({
             ) : (
               <>
                 <button
-                  onClick={() => setCurrentPage('login')}
+                  onClick={() => handleNavigation('/login')}
                   className="px-4 py-2 text-sm text-gray-600 hover:text-gray-900 rounded-full transition-colors"
                 >
                   Login
                 </button>
                 <button
-                  onClick={() => setCurrentPage('signup')}
+                  onClick={() => handleNavigation('/signup')}
                   className="px-4 py-2 text-sm bg-gradient-to-r from-purple-600 via-blue-600 to-teal-500 text-white rounded-full hover:opacity-90 transition-opacity"
                 >
                   Sign Up
@@ -201,13 +211,9 @@ export function Header({
           <div className="md:hidden mt-4 pb-4 border-t border-gray-200 pt-4">
             <div className="flex flex-col gap-2">
               <button
-                onClick={() => {
-                  setCurrentPage('library')
-                  setMobileMenuOpen(false)
-                  router.push('/library')
-                }}
+                onClick={() => handleNavigation('/library')}
                 className={`flex items-center gap-2 px-4 py-3 rounded-xl transition-all text-left ${
-                  currentPage === 'library'
+                  activePage === 'library'
                     ? 'bg-gradient-to-r from-purple-600 via-blue-600 to-teal-500 text-white'
                     : 'text-gray-700 hover:bg-gray-100'
                 }`}
@@ -218,13 +224,9 @@ export function Header({
               {isAuthenticated ? (
                 <>
                   <button
-                    onClick={() => {
-                      setCurrentPage('favorites')
-                      setMobileMenuOpen(false)
-                      router.push('/favorites')
-                    }}
+                    onClick={() => handleNavigation('/favorites')}
                     className={`flex items-center gap-2 px-4 py-3 rounded-xl transition-all text-left ${
-                      currentPage === 'favorites'
+                      activePage === 'favorites'
                         ? 'bg-gradient-to-r from-purple-600 via-blue-600 to-teal-500 text-white'
                         : 'text-gray-700 hover:bg-gray-100'
                     }`}
@@ -233,13 +235,9 @@ export function Header({
                     <span>Favorites</span>
                   </button>
                   <button
-                    onClick={() => {
-                      setCurrentPage('profile')
-                      setMobileMenuOpen(false)
-                      router.push('/profile')
-                    }}
+                    onClick={() => handleNavigation('/profile')}
                     className={`flex items-center gap-2 px-4 py-3 rounded-xl transition-all text-left ${
-                      currentPage === 'profile'
+                      activePage === 'profile'
                         ? 'bg-gradient-to-r from-purple-600 via-blue-600 to-teal-500 text-white'
                         : 'text-gray-700 hover:bg-gray-100'
                     }`}
@@ -261,19 +259,13 @@ export function Header({
               ) : (
                 <>
                   <button
-                    onClick={() => {
-                      setCurrentPage('login')
-                      setMobileMenuOpen(false)
-                    }}
+                    onClick={() => handleNavigation('/login')}
                     className="flex items-center justify-center px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-xl transition-colors"
                   >
                     Login
                   </button>
                   <button
-                    onClick={() => {
-                      setCurrentPage('signup')
-                      setMobileMenuOpen(false)
-                    }}
+                    onClick={() => handleNavigation('/signup')}
                     className="flex items-center justify-center px-4 py-3 bg-gradient-to-r from-purple-600 via-blue-600 to-teal-500 text-white rounded-xl hover:opacity-90 transition-opacity"
                   >
                     Sign Up

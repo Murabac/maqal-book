@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { Library, SlidersHorizontal, Search, Heart } from 'lucide-react'
 import { BookCard } from '@/components/audiobook/BookCard'
 import { CategoryCard } from '@/components/audiobook/CategoryCard'
@@ -24,6 +24,29 @@ export function BrowseLibrary({
   const [selectedLanguage, setSelectedLanguage] = useState('All')
   const [sortBy, setSortBy] = useState('popular')
   const [showFilters, setShowFilters] = useState(false)
+  const audiobooksSectionRef = useRef<HTMLDivElement>(null)
+
+  const handleCategoryChange = (category: string) => {
+    setSelectedCategory(category)
+    // Scroll to audiobooks section after a short delay
+    setTimeout(() => {
+      audiobooksSectionRef.current?.scrollIntoView({ 
+        behavior: 'smooth', 
+        block: 'start' 
+      })
+    }, 100)
+  }
+
+  const handleLanguageChange = (language: string) => {
+    setSelectedLanguage(language)
+    // Scroll to audiobooks section after a short delay
+    setTimeout(() => {
+      audiobooksSectionRef.current?.scrollIntoView({ 
+        behavior: 'smooth', 
+        block: 'start' 
+      })
+    }, 100)
+  }
 
   const categories = [
     { name: 'All', count: audiobooks.length, gradient: 'bg-gradient-to-br from-gray-500 to-gray-600', icon: '📚' },
@@ -128,7 +151,7 @@ export function BrowseLibrary({
                 </label>
                 <select
                   value={selectedCategory}
-                  onChange={(e) => setSelectedCategory(e.target.value)}
+                  onChange={(e) => handleCategoryChange(e.target.value)}
                   className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border-2 border-gray-200 rounded-xl focus:border-purple-500 focus:outline-none transition-colors text-sm sm:text-base text-gray-900 bg-white"
                 >
                   {categories.map((cat) => (
@@ -144,7 +167,7 @@ export function BrowseLibrary({
                 </label>
                 <select
                   value={selectedLanguage}
-                  onChange={(e) => setSelectedLanguage(e.target.value)}
+                  onChange={(e) => handleLanguageChange(e.target.value)}
                   className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border-2 border-gray-200 rounded-xl focus:border-purple-500 focus:outline-none transition-colors text-sm sm:text-base text-gray-900 bg-white"
                 >
                   {languages.map((lang) => (
@@ -166,7 +189,7 @@ export function BrowseLibrary({
               <CategoryCard
                 key={language.name}
                 {...language}
-                onClick={() => setSelectedLanguage(language.name)}
+                onClick={() => handleLanguageChange(language.name)}
               />
             ))}
           </div>
@@ -174,20 +197,30 @@ export function BrowseLibrary({
 
         {/* Categories Grid */}
         <div className="mb-8 sm:mb-12">
-          <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-4 sm:mb-6">Categories</h2>
+          <div className="flex items-center justify-between mb-4 sm:mb-6">
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-900">Categories</h2>
+            {selectedCategory !== 'All' && (
+              <button
+                onClick={() => setSelectedCategory('All')}
+                className="text-sm sm:text-base text-purple-600 hover:text-purple-700 font-semibold"
+              >
+                Clear Filter
+              </button>
+            )}
+          </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-3 sm:gap-4">
             {categories.map((category) => (
               <CategoryCard
                 key={category.name}
                 {...category}
-                onClick={() => setSelectedCategory(category.name)}
+                onClick={() => handleCategoryChange(category.name)}
               />
             ))}
           </div>
         </div>
 
         {/* Results */}
-        <div className="mb-4 sm:mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+        <div ref={audiobooksSectionRef} className="mb-4 sm:mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
           <h2 className="text-xl sm:text-2xl font-bold text-gray-900">
             {selectedCategory === 'All' ? 'All Audiobooks' : selectedCategory}
           </h2>
