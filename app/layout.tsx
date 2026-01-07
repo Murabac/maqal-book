@@ -26,8 +26,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${inter.variable} ${cairo.variable}`}>
-      <body>
+    <html lang="en" className={`${inter.variable} ${cairo.variable}`} suppressHydrationWarning>
+      <body suppressHydrationWarning>
         <AudioPlayerProvider>
           {children}
         </AudioPlayerProvider>
