@@ -34,9 +34,11 @@ export function NavigationProvider({ children }: { children: ReactNode }) {
         // Prefetch routes in the background (non-blocking)
         schedulePrefetch(() => {
           commonRoutes.forEach(route => {
-            router.prefetch(route).catch(() => {
+            try {
+              router.prefetch(route)
+            } catch (error) {
               // Ignore prefetch errors
-            })
+            }
           })
         })
       }

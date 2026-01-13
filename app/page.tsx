@@ -12,6 +12,7 @@ import { UserProfile } from '@/components/user/UserProfile'
 import { Favorites } from '@/components/favorites/Favorites'
 import { BrowseLibrary } from '@/components/library/BrowseLibrary'
 import { useAuth } from '@/hooks/useAuth'
+import { useFavorites } from '@/hooks/useFavorites'
 import { useAudiobooks } from '@/lib/audiobooks-client'
 import type { Audiobook } from '@/types'
 
@@ -22,10 +23,10 @@ export default function Home() {
   const [searchQuery, setSearchQuery] = useState('')
   const [currentPage, setCurrentPage] = useState<PageType>('home')
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
-  const [favorites, setFavorites] = useState<string[]>([])
   const audiobooksSectionRef = useRef<HTMLDivElement>(null)
   const { user, loading: authLoading } = useAuth()
   const { audiobooks, loading: audiobooksLoading } = useAudiobooks()
+  const { favorites, toggleFavorite: toggleFavoriteDb } = useFavorites()
   const isAuthenticated = !!user
 
   // Update authentication state when user changes
@@ -93,15 +94,17 @@ export default function Home() {
     setCurrentPage('home')
   }
 
-  const toggleFavorite = (bookId: string) => {
+  const toggleFavorite = async (bookId: string) => {
     // Check if user is authenticated before toggling favorite
     if (!isAuthenticated) {
       setCurrentPage('login')
       return
     }
-    setFavorites((prev) =>
-      prev.includes(bookId) ? prev.filter((id) => id !== bookId) : [...prev, bookId]
-    )
+    try {
+      await toggleFavoriteDb(bookId)
+    } catch (error) {
+      console.error('Error toggling favorite:', error)
+    }
   }
 
   const favoriteBooks = audiobooks.filter((book) => favorites.includes(book.id))

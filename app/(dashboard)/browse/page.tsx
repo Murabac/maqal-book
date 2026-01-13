@@ -6,16 +6,17 @@ import { Header } from '@/components/layout/Header'
 import { BrowseLibrary } from '@/components/library/BrowseLibrary'
 import { AudioPlayerNew } from '@/components/audiobook/AudioPlayerNew'
 import { useAuth } from '@/hooks/useAuth'
+import { useFavorites } from '@/hooks/useFavorites'
 import { useAudiobooks } from '@/lib/audiobooks-client'
 import type { Audiobook } from '@/types'
 
 export default function BrowsePage() {
   const { user } = useAuth()
   const { audiobooks, loading: audiobooksLoading } = useAudiobooks()
+  const { favorites, toggleFavorite: toggleFavoriteDb } = useFavorites()
   const router = useRouter()
   const [currentPage, setCurrentPage] = useState('browse')
   const [currentBook, setCurrentBook] = useState<Audiobook | null>(null)
-  const [favorites, setFavorites] = useState<string[]>([])
 
   const handlePlayBook = (book: Audiobook) => {
     if (!user) {
@@ -25,14 +26,16 @@ export default function BrowsePage() {
     setCurrentBook(book)
   }
 
-  const toggleFavorite = (bookId: string) => {
+  const toggleFavorite = async (bookId: string) => {
     if (!user) {
       router.push('/login')
       return
     }
-    setFavorites((prev) =>
-      prev.includes(bookId) ? prev.filter((id) => id !== bookId) : [...prev, bookId]
-    )
+    try {
+      await toggleFavoriteDb(bookId)
+    } catch (error) {
+      console.error('Error toggling favorite:', error)
+    }
   }
 
   const handlePageChange = (page: string) => {

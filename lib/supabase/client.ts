@@ -11,11 +11,16 @@ export function createClient() {
     // This will only happen during static generation if env vars aren't set
     return createBrowserClient(
       supabaseUrl || 'https://placeholder.supabase.co',
-      supabaseAnonKey || 'placeholder-key'
+      supabaseAnonKey || 'placeholder-key',
+      {
+        db: { schema: 'maqal-book' },
+      }
     )
   }
 
-  return createBrowserClient(supabaseUrl, supabaseAnonKey)
+  return createBrowserClient(supabaseUrl, supabaseAnonKey, {
+    db: { schema: 'maqal-book' },
+  })
 }
 
 

@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { Headphones, Mail, Lock, User, Eye, EyeOff, AlertCircle } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
+import { createCustomer } from '@/utils/supabase/customers'
 
 interface SignupProps {
   onSignup: () => void
@@ -50,7 +51,16 @@ export function Signup({ onSignup, onSwitchToLogin }: SignupProps) {
       })
 
       if (signUpError) {
-        setError(signUpError.message)
+        // Check if error is due to email already existing
+        if (signUpError.message.includes('already registered') || 
+            signUpError.message.includes('already exists') ||
+            signUpError.message.includes('User already registered')) {
+          // Supabase Auth doesn't allow duplicate emails
+          // If this email is already registered (as admin or customer), they need a different email
+          setError('This email is already registered. If this is an admin account, please use a different email to create a customer account. Otherwise, please try logging in instead.')
+        } else {
+          setError(signUpError.message)
+        }
         setLoading(false)
         return
       }
@@ -60,11 +70,28 @@ export function Signup({ onSignup, onSwitchToLogin }: SignupProps) {
       
       if (user && !user.email_confirmed_at) {
         // Email confirmation required - redirect to confirmation page
+        // Customer will be created after email confirmation
         setError(null)
         setLoading(false)
         // Redirect to confirmation page with a message
         window.location.href = '/confirm-email?pending=true'
         return
+      }
+
+      // If user is already confirmed (no email confirmation required), create customer
+      if (user) {
+        const fullName = name || user.user_metadata?.full_name || user.user_metadata?.name || ''
+        const { success, error: customerError } = await createCustomer(
+          supabase,
+          user.id,
+          user.email || email,
+          fullName
+        )
+        
+        if (!success) {
+          console.error('Error creating customer profile:', customerError)
+          // Continue anyway - customer might be created by a trigger
+        }
       }
 
       // Success - onSignup will be called by the auth state change listener

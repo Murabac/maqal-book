@@ -51,9 +51,11 @@ export function Header({
     setMobileMenuOpen(false)
     
     // Prefetch the route (non-blocking)
-    router.prefetch(path).catch(() => {
+    try {
+      router.prefetch(path)
+    } catch (error) {
       // Ignore prefetch errors
-    })
+    }
     
     // Schedule navigation on next tick to allow state update to render
     // Use queueMicrotask for faster execution than setTimeout
