@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { Headphones, Mail, Lock, Eye, EyeOff, AlertCircle } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
+import { createCustomer, getCustomerData } from '@/utils/supabase/customers'
 
 interface LoginProps {
   onLogin: () => void
@@ -23,7 +24,7 @@ export function Login({ onLogin, onSwitchToSignup }: LoginProps) {
 
     try {
       const supabase = createClient()
-      const { error: signInError } = await supabase.auth.signInWithPassword({
+      const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
         email,
         password,
       })
@@ -32,6 +33,30 @@ export function Login({ onLogin, onSwitchToSignup }: LoginProps) {
         setError(signInError.message)
         setLoading(false)
         return
+      }
+
+      // If user logged in successfully, ensure they have a customer record
+      if (signInData.user) {
+        const user = signInData.user
+        const fullName = user.user_metadata?.full_name || user.user_metadata?.name || ''
+        
+        // Check if customer record exists
+        const { data: customerData } = await getCustomerData(supabase, user.id)
+        
+        // If no customer record exists, create one (this allows admin users to also be customers)
+        if (!customerData) {
+          const { success, error: customerError } = await createCustomer(
+            supabase,
+            user.id,
+            user.email || '',
+            fullName
+          )
+          
+          if (!success) {
+            console.error('Error creating customer profile:', customerError)
+            // Continue anyway - customer might be created by a trigger or admin users can still access
+          }
+        }
       }
 
       // Success - onLogin will be called by the auth state change listener

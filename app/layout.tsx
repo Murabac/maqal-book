@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Inter, Cairo } from "next/font/google";
 import "./globals.css";
 import { AudioPlayerProvider } from "@/context/AudioPlayerContext";
+import { NavigationProvider } from "@/context/NavigationContext";
+import { NavigationProgress } from "@/components/ui/NavigationProgress";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -26,11 +28,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${inter.variable} ${cairo.variable}`}>
-      <body>
-        <AudioPlayerProvider>
-          {children}
-        </AudioPlayerProvider>
+    <html lang="en" className={`${inter.variable} ${cairo.variable}`} suppressHydrationWarning>
+      <body suppressHydrationWarning>
+        <NavigationProvider>
+          <NavigationProgress />
+          <AudioPlayerProvider>
+            {children}
+          </AudioPlayerProvider>
+        </NavigationProvider>
       </body>
     </html>
   );

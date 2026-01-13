@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { getCustomerData } from '@/utils/supabase/customers'
+import { createCustomer } from '@/utils/supabase/customers'
 import type { User as SupabaseUser } from '@supabase/supabase-js'
 
 export interface UserProfile {
@@ -16,6 +18,7 @@ export interface UserProfile {
   xp?: number
   created_at: string
   updated_at?: string
+  subscription_tier?: string
 }
 
 export function useUserProfile() {
@@ -34,43 +37,38 @@ export function useUserProfile() {
           return
         }
 
-        const { data, error: fetchError } = await supabase
-          .from('users')
-          .select('*')
-          .eq('id', user.id)
-          .maybeSingle()
+        // Use getCustomerData helper function to fetch from customers table
+        const { data: customerData, error: fetchError } = await getCustomerData(supabase, user.id)
 
-        // If profile doesn't exist, create it
-        if (fetchError || !data) {
-          // Create a new profile for this user
-          const { data: newProfile, error: createError } = await supabase
-            .from('users')
-            .insert({
-              id: user.id,
-              email: user.email || '',
-              full_name: user.user_metadata?.full_name || user.user_metadata?.name || null,
-            })
-            .select()
-            .single()
+        // If customer doesn't exist, create it
+        if (fetchError || !customerData) {
+          // Create a new customer profile for this user
+          const fullName = user.user_metadata?.full_name || user.user_metadata?.name || ''
+          const { success, error: createError } = await createCustomer(
+            supabase,
+            user.id,
+            user.email || '',
+            fullName
+          )
 
-          if (createError) {
-            // If insert fails (might already exist), try fetching again
-            const { data: existingProfile } = await supabase
-              .from('users')
-              .select('*')
-              .eq('id', user.id)
-              .single()
-            
-            if (existingProfile) {
-              setProfile(existingProfile as UserProfile)
+          if (!success) {
+            console.error('Error creating customer:', createError)
+            // Try fetching again in case it was created by a trigger
+            const { data: retryData } = await getCustomerData(supabase, user.id)
+            if (retryData) {
+              setProfile(retryData as UserProfile)
             } else {
-              throw createError
+              throw createError || new Error('Failed to create customer profile')
             }
-          } else if (newProfile) {
-            setProfile(newProfile as UserProfile)
+          } else {
+            // Fetch the newly created customer
+            const { data: newCustomerData } = await getCustomerData(supabase, user.id)
+            if (newCustomerData) {
+              setProfile(newCustomerData as UserProfile)
+            }
           }
         } else {
-          setProfile(data as UserProfile)
+          setProfile(customerData as UserProfile)
         }
       } catch (err) {
         setError(err instanceof Error ? err : new Error('Failed to fetch profile'))
@@ -92,40 +90,45 @@ export function useUserProfile() {
         throw new Error('User not authenticated')
       }
 
-      // Check if profile exists first
-      const { data: existingProfile } = await supabase
-        .from('users')
-        .select('id, email')
-        .eq('id', user.id)
-        .maybeSingle()
+      // Check if customer exists first
+      const { data: existingCustomer } = await getCustomerData(supabase, user.id)
 
       let result
 
-      if (existingProfile) {
-        // Profile exists, update it
-        const { data: updatedData, error: updateError } = await supabase
-          .from('users')
-          .update(updates)
-          .eq('id', user.id)
-          .select()
-          .single()
+      if (existingCustomer) {
+        // Customer exists, update it directly (fallback if RPC not available)
+        try {
+          const { data: updatedData, error: updateError } = await supabase
+            .from('customers')
+            .update(updates)
+            .eq('id', user.id)
+            .select()
+            .single()
 
-        if (updateError) throw updateError
-        result = updatedData
+          if (updateError) throw updateError
+          result = updatedData
+        } catch (updateErr) {
+          console.error('Error updating customer:', updateErr)
+          throw updateErr
+        }
       } else {
-        // Profile doesn't exist, create it with updates
-        const { data: insertedData, error: insertError } = await supabase
-          .from('users')
-          .insert({
-            id: user.id,
-            email: user.email || '',
-            ...updates,
-          })
-          .select()
-          .single()
+        // Customer doesn't exist, create it with updates
+        const fullName = updates.full_name || user.user_metadata?.full_name || user.user_metadata?.name || ''
+        const { success, error: createError } = await createCustomer(
+          supabase,
+          user.id,
+          user.email || '',
+          fullName,
+          updates.subscription_tier
+        )
 
-        if (insertError) throw insertError
-        result = insertedData
+        if (!success) {
+          throw createError || new Error('Failed to create customer')
+        }
+
+        // Fetch the newly created customer
+        const { data: newCustomerData } = await getCustomerData(supabase, user.id)
+        result = newCustomerData
       }
 
       if (result) {

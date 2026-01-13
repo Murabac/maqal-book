@@ -5,6 +5,7 @@ import { Search, Menu, X, Headphones, User, Heart, Library, LogOut } from 'lucid
 import { useAuth } from '@/hooks/useAuth'
 import { useRouter, usePathname } from 'next/navigation'
 import { PageType } from '@/types'
+import { useNavigation } from '@/context/NavigationContext'
 
 interface HeaderProps {
   currentPage?: PageType
@@ -26,6 +27,7 @@ export function Header({
   const { signOut } = useAuth()
   const router = useRouter()
   const pathname = usePathname()
+  const { setNavigating } = useNavigation()
 
   // Determine current page from pathname if not provided
   const getCurrentPage = (): PageType => {
@@ -43,8 +45,23 @@ export function Header({
   const isHomePage = activePage === 'home'
 
   const handleNavigation = (path: string) => {
+    // CRITICAL: Set navigation state synchronously BEFORE anything else
+    // This must be the first operation for instant feedback
+    setNavigating(true)
     setMobileMenuOpen(false)
-    router.push(path)
+    
+    // Prefetch the route (non-blocking)
+    try {
+      router.prefetch(path)
+    } catch (error) {
+      // Ignore prefetch errors
+    }
+    
+    // Schedule navigation on next tick to allow state update to render
+    // Use queueMicrotask for faster execution than setTimeout
+    queueMicrotask(() => {
+      router.push(path)
+    })
   }
 
   const handleLogout = async () => {

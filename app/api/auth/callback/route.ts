@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
+import { createCustomer } from '@/utils/supabase/customers'
 
 export async function GET(request: Request) {
   const requestUrl = new URL(request.url)
@@ -12,8 +13,17 @@ export async function GET(request: Request) {
 
   // Handle OAuth callback with code
   if (code) {
-    const { error } = await supabase.auth.exchangeCodeForSession(code)
-    if (!error) {
+    const { data: sessionData, error } = await supabase.auth.exchangeCodeForSession(code)
+    if (!error && sessionData?.user) {
+      // Create customer profile for OAuth signup
+      const user = sessionData.user
+      const fullName = user.user_metadata?.full_name || user.user_metadata?.name || ''
+      await createCustomer(
+        supabase,
+        user.id,
+        user.email || '',
+        fullName
+      )
       return NextResponse.redirect(`${origin}/`)
     }
   }

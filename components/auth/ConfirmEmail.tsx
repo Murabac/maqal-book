@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { Headphones, Mail, CheckCircle, XCircle, Loader2 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
+import { createCustomer } from '@/utils/supabase/customers'
 
 export function ConfirmEmail() {
   const [status, setStatus] = useState<'loading' | 'success' | 'error' | 'expired' | 'pending'>('loading')
@@ -52,6 +53,16 @@ export function ConfirmEmail() {
           }
 
           if (data?.user) {
+            // Create customer profile after email confirmation
+            const user = data.user
+            const fullName = user.user_metadata?.full_name || user.user_metadata?.name || ''
+            await createCustomer(
+              supabase,
+              user.id,
+              user.email || '',
+              fullName
+            )
+            
             setStatus('success')
             setMessage('Your email has been confirmed! Redirecting you to the app...')
             

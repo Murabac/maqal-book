@@ -18,3 +18,5 @@ export default function BookDetailPage({ params }: BookDetailPageProps) {
 
 
 
+
+

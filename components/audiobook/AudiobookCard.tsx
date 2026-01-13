@@ -12,7 +12,7 @@ export function AudiobookCard({ audiobook }: AudiobookCardProps) {
   const textDirection = isArabic ? 'rtl' : 'ltr'
   
   return (
-    <Link href={`/books/${audiobook.id}`}>
+    <Link href={`/books/${audiobook.id}`} prefetch={true}>
       <Card className="group cursor-pointer transition-transform hover:scale-105">
         <div className="relative aspect-[3/4] w-full overflow-hidden rounded-t-lg">
           <Image
