@@ -13,13 +13,22 @@ interface FavoritesProps {
 }
 
 export function Favorites({ favorites, onPlayBook, onRemoveFavorite }: FavoritesProps) {
-  const categories = ['All', 'Mystery', 'Fantasy', 'Romance', 'Sci-Fi', 'Thriller', 'Non-Fiction', 'Fiction']
+  // Get unique categories from favorites
+  const categorySet = new Set<string>()
+  favorites.forEach((book) => {
+    const categoryName = book.category_name || book.category
+    if (categoryName) categorySet.add(categoryName)
+  })
+  const categories = ['All', ...Array.from(categorySet).sort()]
   const [selectedCategory, setSelectedCategory] = useState('All')
 
   const filteredFavorites =
     selectedCategory === 'All'
       ? favorites
-      : favorites.filter((book) => book.category === selectedCategory)
+      : favorites.filter((book) => {
+          const categoryName = book.category_name || book.category
+          return categoryName === selectedCategory
+        })
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-teal-50 pb-24 sm:pb-32">
@@ -125,7 +134,7 @@ export function Favorites({ favorites, onPlayBook, onRemoveFavorite }: Favorites
                           {book.title}
                         </h4>
                         <p className={`text-xs sm:text-sm text-gray-600 truncate ${isArabic ? 'font-arabic' : ''}`}>
-                          {book.author}
+                          {book.author_name || book.author}
                         </p>
                         <div className="flex items-center gap-2 sm:gap-3 mt-1">
                           <span className="text-xs text-gray-500 flex items-center gap-1">
@@ -133,7 +142,7 @@ export function Favorites({ favorites, onPlayBook, onRemoveFavorite }: Favorites
                             {book.duration}
                           </span>
                           <span className="text-xs text-purple-600 font-semibold">
-                            {book.category}
+                            {book.category_name || book.category}
                           </span>
                         </div>
                       </div>

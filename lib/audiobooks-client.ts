@@ -23,11 +23,20 @@ export function useAudiobooks() {
         const books: Audiobook[] = (data || []).map((book) => ({
           id: book.id,
           title: book.title,
-          author: book.author,
+          author_id: book.author_id,
+          author_name: book.author_name || '',
+          author_bio: book.author_bio || null,
+          category_id: book.category_id,
+          category_name: book.category_name || '',
+          category_description: book.category_description || null,
           cover: book.cover,
           duration: book.duration,
-          category: book.category,
           language: book.language as 'English' | 'Arabic' | 'Somali',
+          created_at: book.created_at,
+          updated_at: book.updated_at,
+          // Legacy fields for backward compatibility
+          author: book.author_name || '',
+          category: book.category_name || '',
         }))
 
         setAudiobooks(books)
@@ -61,11 +70,20 @@ export async function fetchAudiobooksClient(): Promise<Audiobook[]> {
   return (data || []).map((book) => ({
     id: book.id,
     title: book.title,
-    author: book.author,
+    author_id: book.author_id,
+    author_name: book.author_name || '',
+    author_bio: book.author_bio || null,
+    category_id: book.category_id,
+    category_name: book.category_name || '',
+    category_description: book.category_description || null,
     cover: book.cover,
     duration: book.duration,
-    category: book.category,
     language: book.language as 'English' | 'Arabic' | 'Somali',
+    created_at: book.created_at,
+    updated_at: book.updated_at,
+    // Legacy fields for backward compatibility
+    author: book.author_name || '',
+    category: book.category_name || '',
   }))
 }
 

@@ -61,7 +61,7 @@ export function AudioPlayerNew({ currentBook }: AudioPlayerProps) {
             </div>
             <div className={`hidden xs:block min-w-0 ${isArabic ? 'font-arabic' : ''}`} dir={textDirection}>
               <div className="font-semibold text-xs sm:text-sm truncate">{currentBook.title}</div>
-              <div className="text-xs opacity-90 truncate">{currentBook.author}</div>
+              <div className="text-xs opacity-90 truncate">{currentBook.author_name || currentBook.author}</div>
             </div>
           </div>
 

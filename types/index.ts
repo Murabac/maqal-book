@@ -9,11 +9,34 @@ export interface User {
 export interface Audiobook {
   id: string
   title: string
-  author: string
+  author_id: string
+  author_name: string // From authors table join
+  author_bio?: string | null // From authors table join
+  category_id: string
+  category_name: string // From categories table join
+  category_description?: string | null // From categories table join
   cover: string
   duration: string // e.g., "8h 30m"
-  category: string
   language: 'English' | 'Arabic' | 'Somali'
+  created_at?: string
+  updated_at?: string
+  // Legacy fields for backward compatibility (deprecated - use author_name and category_name)
+  author?: string
+  category?: string
+}
+
+export interface Category {
+  id: string
+  name: string
+  description?: string | null
+  created_at?: string
+  updated_at?: string
+}
+
+export interface Author {
+  id: string
+  name: string
+  bio?: string | null
   created_at?: string
   updated_at?: string
 }
