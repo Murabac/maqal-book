@@ -27,7 +27,7 @@ export function AudiobookCard({ audiobook }: AudiobookCardProps) {
             {audiobook.title}
           </h3>
           <p className={`text-sm text-muted-foreground mb-2 ${isArabic ? 'font-arabic' : ''}`}>
-            {audiobook.author}
+            {audiobook.author_name || audiobook.author}
           </p>
           <div className="flex items-center justify-between">
             <p className="text-xs text-muted-foreground">{audiobook.duration}</p>

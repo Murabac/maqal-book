@@ -264,11 +264,15 @@ export function UserProfile({ onPlayBook }: UserProfileProps) {
           onPlay={() => onPlayBook({
             id: currentBook.id,
             title: currentBook.title,
-            author: currentBook.author,
+            author_id: '',
+            author_name: currentBook.author,
+            category_id: '',
+            category_name: currentBook.category,
             cover: currentBook.cover,
             duration: currentBook.duration,
-            category: currentBook.category,
             language: currentBook.language,
+            author: currentBook.author,
+            category: currentBook.category,
           })} 
         />
 

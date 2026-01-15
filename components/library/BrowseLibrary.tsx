@@ -48,15 +48,44 @@ export function BrowseLibrary({
     }, 100)
   }
 
+  // Get unique categories dynamically from audiobooks
+  const categoryMap = new Map<string, { name: string; count: number; gradient: string; icon: string }>()
+  
+  // Predefined category styles
+  const categoryStyles: Record<string, { gradient: string; icon: string }> = {
+    'Mystery': { gradient: 'bg-gradient-to-br from-purple-500 to-indigo-600', icon: '🔍' },
+    'Fantasy': { gradient: 'bg-gradient-to-br from-blue-500 to-cyan-600', icon: '🧙' },
+    'Romance': { gradient: 'bg-gradient-to-br from-red-500 to-rose-600', icon: '💕' },
+    'Sci-Fi': { gradient: 'bg-gradient-to-br from-teal-500 to-blue-600', icon: '🚀' },
+    'Thriller': { gradient: 'bg-gradient-to-br from-orange-500 to-red-600', icon: '⚡' },
+    'Non-Fiction': { gradient: 'bg-gradient-to-br from-green-500 to-emerald-600', icon: '🎓' },
+    'Fiction': { gradient: 'bg-gradient-to-br from-indigo-500 to-purple-600', icon: '📖' },
+  }
+  
+  // Count books per category
+  audiobooks.forEach((book) => {
+    const categoryName = book.category_name || book.category || 'Uncategorized'
+    const current = categoryMap.get(categoryName) || { 
+      name: categoryName, 
+      count: 0, 
+      gradient: 'bg-gradient-to-br from-gray-500 to-gray-600', 
+      icon: '📚' 
+    }
+    current.count++
+    categoryMap.set(categoryName, current)
+  })
+  
+  // Apply predefined styles if available
+  categoryMap.forEach((cat, name) => {
+    if (categoryStyles[name]) {
+      cat.gradient = categoryStyles[name].gradient
+      cat.icon = categoryStyles[name].icon
+    }
+  })
+  
   const categories = [
     { name: 'All', count: audiobooks.length, gradient: 'bg-gradient-to-br from-gray-500 to-gray-600', icon: '📚' },
-    { name: 'Mystery', count: audiobooks.filter(b => b.category === 'Mystery').length, gradient: 'bg-gradient-to-br from-purple-500 to-indigo-600', icon: '🔍' },
-    { name: 'Fantasy', count: audiobooks.filter(b => b.category === 'Fantasy').length, gradient: 'bg-gradient-to-br from-blue-500 to-cyan-600', icon: '🧙' },
-    { name: 'Romance', count: audiobooks.filter(b => b.category === 'Romance').length, gradient: 'bg-gradient-to-br from-red-500 to-rose-600', icon: '💕' },
-    { name: 'Sci-Fi', count: audiobooks.filter(b => b.category === 'Sci-Fi').length, gradient: 'bg-gradient-to-br from-teal-500 to-blue-600', icon: '🚀' },
-    { name: 'Thriller', count: audiobooks.filter(b => b.category === 'Thriller').length, gradient: 'bg-gradient-to-br from-orange-500 to-red-600', icon: '⚡' },
-    { name: 'Non-Fiction', count: audiobooks.filter(b => b.category === 'Non-Fiction').length, gradient: 'bg-gradient-to-br from-green-500 to-emerald-600', icon: '🎓' },
-    { name: 'Fiction', count: audiobooks.filter(b => b.category === 'Fiction').length, gradient: 'bg-gradient-to-br from-indigo-500 to-purple-600', icon: '📖' },
+    ...Array.from(categoryMap.values()).sort((a, b) => a.name.localeCompare(b.name))
   ]
 
   const languageCount = {
@@ -74,17 +103,23 @@ export function BrowseLibrary({
   ]
 
   const filteredBooks = audiobooks.filter((book) => {
+    const authorName = book.author_name || book.author || ''
     const matchesSearch =
       book.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      book.author.toLowerCase().includes(searchQuery.toLowerCase())
-    const matchesCategory = selectedCategory === 'All' || book.category === selectedCategory
+      authorName.toLowerCase().includes(searchQuery.toLowerCase())
+    const categoryName = book.category_name || book.category || 'Uncategorized'
+    const matchesCategory = selectedCategory === 'All' || categoryName === selectedCategory
     const matchesLanguage = selectedLanguage === 'All' || book.language === selectedLanguage
     return matchesSearch && matchesCategory && matchesLanguage
   })
 
   const sortedBooks = [...filteredBooks].sort((a, b) => {
     if (sortBy === 'title') return a.title.localeCompare(b.title)
-    if (sortBy === 'author') return a.author.localeCompare(b.author)
+    if (sortBy === 'author') {
+      const aAuthor = a.author_name || a.author || ''
+      const bAuthor = b.author_name || b.author || ''
+      return aAuthor.localeCompare(bAuthor)
+    }
     if (sortBy === 'duration') return a.duration.localeCompare(b.duration)
     return 0 // popular (default order)
   })

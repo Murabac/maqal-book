@@ -42,16 +42,18 @@ export default function Home() {
 
   // Filter audiobooks based on search query and category
   const filteredAudiobooks = audiobooks.filter((book) => {
-    // Filter by category
-    if (selectedCategory && book.category !== selectedCategory) {
+    // Filter by category (use category_name if available, fallback to category)
+    const bookCategory = book.category_name || book.category
+    if (selectedCategory && bookCategory !== selectedCategory) {
       return false
     }
     
     // Filter by search query
     if (searchQuery) {
+      const authorName = book.author_name || book.author || ''
       return (
         book.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        book.author.toLowerCase().includes(searchQuery.toLowerCase())
+        authorName.toLowerCase().includes(searchQuery.toLowerCase())
       )
     }
     
@@ -61,7 +63,8 @@ export default function Home() {
   // Get unique categories and calculate counts dynamically
   const categoryMap = new Map<string, number>()
   audiobooks.forEach((book) => {
-    categoryMap.set(book.category, (categoryMap.get(book.category) || 0) + 1)
+    const categoryName = book.category_name || book.category || 'Uncategorized'
+    categoryMap.set(categoryName, (categoryMap.get(categoryName) || 0) + 1)
   })
 
   const categories = [

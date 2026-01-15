@@ -15,9 +15,11 @@ export function BookCard({
   id,
   title,
   author,
+  author_name,
   cover,
   duration,
   category,
+  category_name,
   language,
   onPlay,
   isFavorite: externalIsFavorite,
@@ -74,7 +76,7 @@ export function BookCard({
         {/* Category Badge */}
         <div className="absolute top-2 left-2 sm:top-3 sm:left-3">
           <span className="bg-white/90 backdrop-blur-sm text-purple-600 px-2 sm:px-3 py-0.5 sm:py-1 rounded-full text-xs font-medium">
-            {category}
+            {category_name || category}
           </span>
         </div>
 
@@ -98,7 +100,7 @@ export function BookCard({
           {title}
         </h3>
         <p className={`text-xs sm:text-sm text-gray-600 mb-2 line-clamp-1 ${isArabic ? 'font-arabic' : ''}`}>
-          {author}
+          {author_name || author}
         </p>
         <div className="flex items-center justify-between mb-2 gap-1">
           <span className="text-xs text-gray-500 truncate">{duration}</span>
