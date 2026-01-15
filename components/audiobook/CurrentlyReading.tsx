@@ -53,7 +53,7 @@ export function CurrentlyReading({ book, onPlay }: CurrentlyReadingProps) {
             {book.title}
           </h3>
           <p className={`text-xs sm:text-sm opacity-90 mb-3 ${isArabic ? 'font-arabic' : ''}`}>
-            {book.author_name || book.author}
+            {book.author}
           </p>
           <div className="flex items-center justify-center sm:justify-start gap-3 sm:gap-4 mb-3">
             <div className="text-xl sm:text-2xl font-bold">{book.progress}%</div>

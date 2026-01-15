@@ -103,11 +103,11 @@ export function BrowseLibrary({
   ]
 
   const filteredBooks = audiobooks.filter((book) => {
-    const authorName = book.author_name || book.author
+    const authorName = book.author_name || book.author || ''
     const matchesSearch =
       book.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       authorName.toLowerCase().includes(searchQuery.toLowerCase())
-    const categoryName = book.category_name || book.category
+    const categoryName = book.category_name || book.category || 'Uncategorized'
     const matchesCategory = selectedCategory === 'All' || categoryName === selectedCategory
     const matchesLanguage = selectedLanguage === 'All' || book.language === selectedLanguage
     return matchesSearch && matchesCategory && matchesLanguage
@@ -116,8 +116,8 @@ export function BrowseLibrary({
   const sortedBooks = [...filteredBooks].sort((a, b) => {
     if (sortBy === 'title') return a.title.localeCompare(b.title)
     if (sortBy === 'author') {
-      const aAuthor = a.author_name || a.author
-      const bAuthor = b.author_name || b.author
+      const aAuthor = a.author_name || a.author || ''
+      const bAuthor = b.author_name || b.author || ''
       return aAuthor.localeCompare(bAuthor)
     }
     if (sortBy === 'duration') return a.duration.localeCompare(b.duration)

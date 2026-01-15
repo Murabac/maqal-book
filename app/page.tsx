@@ -50,7 +50,7 @@ export default function Home() {
     
     // Filter by search query
     if (searchQuery) {
-      const authorName = book.author_name || book.author
+      const authorName = book.author_name || book.author || ''
       return (
         book.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
         authorName.toLowerCase().includes(searchQuery.toLowerCase())
@@ -63,7 +63,7 @@ export default function Home() {
   // Get unique categories and calculate counts dynamically
   const categoryMap = new Map<string, number>()
   audiobooks.forEach((book) => {
-    const categoryName = book.category_name || book.category
+    const categoryName = book.category_name || book.category || 'Uncategorized'
     categoryMap.set(categoryName, (categoryMap.get(categoryName) || 0) + 1)
   })
 
